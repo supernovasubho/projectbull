@@ -11,7 +11,8 @@ var MyCharts = (function(){
 		misc,
 		events,
 		attributes,
-		settingUpAttributesNotSpecified;
+		settingUpCommonAttributesNotSpecified,
+		setupChartContainer;
 
 	defaultValue = {
 		chartId: "chart1",
@@ -36,9 +37,10 @@ var MyCharts = (function(){
 			// common attributes are applicable for all chart types
 			captionSpaceWidth: 0,
 			captionSpaceHeight: 0,
-			xAxisWidth: 0,
 			xAxisHeight: 0,
-			isAnimate: 0	
+			yAxisWidth: 0,
+			isAnimate: 0,
+			backgroundColor: ""	
 		},
 		chartSpecific: {
 			// chart specific attributes are only for specific charts
@@ -96,10 +98,7 @@ var MyCharts = (function(){
 				raiseError(errorMessages.invalidContainerId);
 				return false;
 			}
-			if(document.getElementById(id.trim()) === null) {
-				raiseError(errorMessages.containerNotFound);
-				return false;	
-			}
+			
 			return true;
 		},
 		chartType: function(type) {
@@ -178,7 +177,7 @@ var MyCharts = (function(){
 		}
 
 		if(validate.chartContainerId(arguments[0][1])){
-			chartObjectParameter.chartContainer = document.getElementById(arguments[0][0].trim());
+			chartObjectParameter.chartContainer = arguments[0][1].trim();
 		}
 
 		if(validate.chartType(arguments[0][2])) {
@@ -186,8 +185,8 @@ var MyCharts = (function(){
 		}
 
 		if(validate.checkWidthHeight(arguments[0][3], arguments[0][4])) {
-			chartObjectParameter.width = arguments[0][3] + "px";
-			chartObjectParameter.width = arguments[0][4] + "px";		
+			chartObjectParameter.width = arguments[0][3];
+			chartObjectParameter.height = arguments[0][4];		
 		}
 
 		if(validate.checkDataType(arguments[0][5])) {
@@ -227,14 +226,45 @@ var MyCharts = (function(){
 		}
 	})(arguments);
 	
-	settingUpAttributesNotSpecified = (function(){
-		
+	setupChartContainer = (function() {console.log(chartObjectParameter.chartContainer);
+		var tempObject = document.getElementById(chartObjectParameter.chartContainer);
+		if(!tempObject) {
+			raiseError(errorMessages.containerNotFound);
+			return false;
+		} else {
+			chartObjectParameter.chartContainer = tempObject;
+		}
+		return true;
+	});
+
+	/**
+	* This function will setup the attributes which is not specified by user
+	*/
+	settingUpCommonAttributesNotSpecified = (function(){
+		if(!chartObjectParameter.attributes.xAxisHeight) {
+			chartObjectParameter.attributes.xAxisHeight = ((chartObjectParameter.width*1.67)/100);
+		}
+		if(!chartObjectParameter.attributes.yAxisWidth) {
+			chartObjectParameter.attributes.yAxisWidth = ((chartObjectParameter.height*1.67)/100);
+		}
+		if(!chartObjectParameter.attributes.captionSpaceWidth) {
+			chartObjectParameter.attributes.captionSpaceWidth = ((chartObjectParameter.width*1.67)/100);
+		}
+		if(!chartObjectParameter.attributes.captionSpaceHeight) {
+			chartObjectParameter.attributes.captionSpaceHeight = ((chartObjectParameter.height*1.67)/100);
+		}
+		if(chartObjectParameter.attributes.backgroundColor.trim() === "") {
+			chartObjectParameter.attributes.backgroundColor = "#ccffcc";
+		}
 	});
 
 	startPreparingTheChart = (function() {
 		console.log(chartObjectParameter);
-		settingUpAttributesNotSpecified();
-
+		settingUpCommonAttributesNotSpecified();
+		// if before render event is specified, firing the evenet
+		if(events.beforeRender) {
+			events.beforeRender();
+		}
 	});
 	this.beforeRender = (function(fn) {
 		events.beforeRender = fn;
@@ -243,9 +273,8 @@ var MyCharts = (function(){
 		events.afterRender = fn;
 	});
 	this.render = (function(){
-		// if before render event is specified, firing the evenet
-		if(events.beforeRender) {
-			events.beforeRender();
+		if(!setupChartContainer()) {
+			return false;
 		}
 		
 		startPreparingTheChart();
