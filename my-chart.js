@@ -68,8 +68,19 @@ var MyCharts = (function(){
 	* Holds all the supported events
 	*/
 	events = {
-		beforeRender: null,
-		afterRender: null
+		common: {
+			beforeRender: null,
+			afterRender: null	
+		},
+		chartSpecific: {
+			bullseye: {
+
+			},
+			triangle: {
+
+			}
+		}
+		
 	};
 
 	raiseError = (function(message){
@@ -154,7 +165,8 @@ var MyCharts = (function(){
 		height: defaultValue.height,
 		dataType: defaultValue.dataType,
 		dataSource: defaultValue.dataSource,
-		attributes: {}
+		attributes: {},
+		events: {}
 	};
 
 	/**
@@ -167,6 +179,7 @@ var MyCharts = (function(){
 	*	arguments[0][5] = chartDataType
 	*	arguments[0][6] = dataSource
 	*	arguments[0][7] = attributesOptions
+	*	arguments[0][8] = events
 	*/
 	constructor = (function(){
 		var chartSpecificAttributes,
